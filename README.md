@@ -50,5 +50,5 @@ nexthop dev ppp2 weight 2
 ./reconfig
 
 
-### Uninstall no-ip client 
+### uninstall no-ip client 
 ./uninstall
