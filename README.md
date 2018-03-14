@@ -29,3 +29,26 @@ nexthop dev ppp1 weight 1
 nexthop dev ppp2 weight 2 
 
 ```
+
+# How to use
+
+### download packages
+./download
+
+
+### install no-ip client
+./install
+
+### start no-ip process
+./start
+
+### check whether active 
+./status
+
+
+### reconfig no-ip client
+./reconfig
+
+
+### Uninstall no-ip client 
+./uninstall
