@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ps aux | grep noip2
+
+echo "--------------------------"
+
+
+sudo noip2 -S
+
+
+
