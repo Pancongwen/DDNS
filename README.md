@@ -2,7 +2,8 @@
 
 This is a project show you how to install no-ip ddns client on ubuntu server
 
-# Topology
+## Preparation
+### Topology
   ```
    ___________________________        ______________
   |                           |      |              |  
@@ -20,17 +21,11 @@ This is a project show you how to install no-ip ddns client on ubuntu server
 * ppp1 - PPPoE connection interface 
 * ppp2 - PPPoE connection interface
 * Load balance 
-```
-$ ip route
 
-ip route default scope link
+### Sign in NO-IP
+Sign in [NO-IP](https://www.noip.com/) and get a free domain
 
-nexthop dev ppp1 weight 1
-nexthop dev ppp2 weight 2 
-
-```
-
-# How to use
+## Install client on ubuntu server
 
 ### download packages
 ./download
