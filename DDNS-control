@@ -31,6 +31,7 @@ Config() {
     # config service execuable script
     sudo cp $exec_dir/ddns.sh.tamplate $working_dir/ddns-$conf.sh
     sudo sed -i "s/NOIP-CONF/$conf/g" $working_dir/ddns-$conf.sh
+    sudo chmod +x $working_dir/ddns-$conf.sh
 
     # generate noip config 
     $exec_dir/noip2-x86_64 -C -c $conf.conf
@@ -104,7 +105,8 @@ case "$1" in
         ;;
 
     status)
-        Status
+        Parameter_judge 2 $#
+        Status $2
         ;;
 
     *)
