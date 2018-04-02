@@ -55,6 +55,9 @@ Clean() {
     # remove configure
     sudo rm $working_dir/$conf.conf
     sudo rm $working_dir/ddns-$conf.sh
+
+    # remove /etc/ddns when there is no configure in it
+    ls /etc/ddns/ | grep ddns || sudo rm -r /etc/ddns/
 }
 
 Start() {
