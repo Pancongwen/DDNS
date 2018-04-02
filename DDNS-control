@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# define directories
+origin=`cd $(dirname $0);pwd `
+exec_dir="$origin/exec"
+service_dir="$origin/service"
+working_dir="/etc/ddns"
+system_service="/etc/systemd/system"
+
+Usage() {
+    echo "Usage: ./$0 { config | clean | start | stop | status } [conf]"
+    echo "[conf] : the name of you configure(without '.conf')."
+    exit 1
+}
+
+Parameter_judge() {
+    correct_num=$1
+    real_num=$2
+    if [ $correct_num != $real_num ];then
+        Usage
+    fi
+}
+
+Config() {
+    conf="$1"
+    sudo mkdir -p $working_dir 
+
+    # copy noip exec to /etc/ddns
+    sudo cp $exec_dir/noip2-x86_64 $working_dir/
+
+    # config service execuable script
+    sudo cp $exec_dir/ddns.sh.tamplate $working_dir/ddns-$conf.sh
+    sudo sed -i "s/NOIP-CONF/$conf/g" $working_dir/ddns-$conf.sh
+
+    # generate noip config 
+    ./noip2-x86_64 -C -c $conf.conf
+    sudo mv $conf.conf $working_dir/
+
+    # config service
+    sudo cp $service_dir/ddns.service.tamplate $system_service/ddns-$conf.service
+    sudo sed -i "s/CONF/$conf/g" $system_service/ddns-$conf.service
+    
+    # config timer
+    sudo cp $service_dir/ddns.timer.tamplate $system_service/ddns-$conf.timer
+    sudo sed -i "s/CONF/$conf/g" $system_service/ddns-$conf.timer
+}
+
+Clean() {
+    conf="$1"
+    # remove service configure
+    sudo rm $system_service/ddns-$conf.service 
+    sudo rm $system_service/ddns-$conf.timer
+
+    # remove configure
+    sudo rm $working_dir/$conf.conf
+    sudo rm $working_dir/ddns-$conf.sh
+}
+
+Start() {
+    conf="$1"
+    for cmd in enable start status
+    do 
+        sudo systemctl $cmd ddns-$conf.timer
+    done
+}
+
+Stop() {
+    conf="$1"
+    for cmd in disable stop status
+    do 
+        sudo systemctl $cmd ddns-$conf.timer
+        sudo systemctl $cmd ddns-$conf.service
+    done
+}
+
+Status() {
+    conf="$1"
+    echo "Service status"
+    sudo systemctl status ddns-$conf.timer
+    sudo systemctl status ddns-$conf.service
+    echo "DDNS status" 
+    sudo $exec_dir/noip2-x86_64 -S -c $working_dir/$conf.conf
+}
+
+case "$1" in
+    config)
+        Parameter_judge 2 $#
+        Config $2
+        ;;
+
+    clean)
+        Parameter_judge 2 $#
+        Clean $2
+        ;;
+
+    start)
+        Parameter_judge 2 $#
+        Start $2
+        ;;
+
+    stop)
+        Parameter_judge 2 $#
+        Stop $2
+        ;;
+
+    status)
+        Status
+        ;;
+
+    *)
+        Usage
+        ;;
+esac
+    
+
