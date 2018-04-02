@@ -59,10 +59,12 @@ Clean() {
 
 Start() {
     conf="$1"
-    for cmd in enable start status
+    for cmd in start status
     do 
+        sudo systemctl $cmd ddns-$conf.service
         sudo systemctl $cmd ddns-$conf.timer
     done
+    sudo systemctl enable ddns-$conf.timer
 }
 
 Stop() {
