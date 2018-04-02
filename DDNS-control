@@ -33,7 +33,7 @@ Config() {
     sudo sed -i "s/NOIP-CONF/$conf/g" $working_dir/ddns-$conf.sh
 
     # generate noip config 
-    ./noip2-x86_64 -C -c $conf.conf
+    $exec_dir/noip2-x86_64 -C -c $conf.conf
     sudo mv $conf.conf $working_dir/
 
     # config service
