@@ -1,0 +1,43 @@
+#!/bin/bash
+
+conf="NOIP-CONF"
+dir="/etc/ddns"
+
+Usage() {
+    echo "Usage: ./$0 { start | stop }" 
+}
+
+Parameter_judge() {
+    correct_num=$1
+    real_num=$2
+    if [ $correct_num != $real_num ];then
+        Usage
+    fi
+}
+
+Get_pid() {
+    sudo $dir/noip2-x86_64 -S -c $dir/$conf | grep Process | 
+}
+
+Start() {
+    sudo $dir/noip2-x86_64 -M -c $dir/$conf
+}
+
+Stop() {
+    pid=`Get_pid`
+    sudo $dir/noip2-x86_64 -K $pid
+}
+
+
+case "$1" in 
+    start)
+        Start
+        ;;
+
+    stop)
+        Stop
+        ;;
+    *)
+        Usage
+        ;;
+esac
