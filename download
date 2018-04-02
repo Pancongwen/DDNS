@@ -1,5 +1,0 @@
-#!/bin/bash
-
-cd /usr/local/src/
-sudo wget http://www.no-ip.com/client/linux/noip-duc-linux.tar.gz
-sudo tar xf noip-duc-linux.tar.gz

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-version="2.1.9-1"
-cd /usr/local/src/noip-$version
-sudo make install

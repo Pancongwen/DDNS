@@ -1,4 +1,0 @@
-#!/bin/bash
-sudo /usr/local/bin/noip2 -K $1
-sudo rm /usr/local/bin/noip2
-sudo rm /usr/local/etc/no-ip2.conf
