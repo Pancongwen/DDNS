@@ -16,15 +16,16 @@ Parameter_judge() {
 }
 
 Get_pid() {
-    sudo $dir/noip2-x86_64 -S -c $dir/$conf | grep Process | 
+    conf="$1"
+    sudo ps aux | grep noip | grep $conf | awk -F ' ' '{print $2}'
 }
 
 Start() {
-    sudo $dir/noip2-x86_64 -M -c $dir/$conf
+    sudo $dir/noip2-x86_64 -M -c $dir/$conf.conf
 }
 
 Stop() {
-    pid=`Get_pid`
+    pid=`Get_pid $conf`
     sudo $dir/noip2-x86_64 -K $pid
 }
 
