@@ -9,8 +9,8 @@ system_service="/etc/systemd/system"
 
 # tools part 
 Usage() {
-    echo "Usage: $0 { config | clean | start | stop } [conf] | status"
-    echo "[conf] : the name of your ddns configure(without '.conf')."
+    echo "Usage: $0 { config | clean | start | stop | status } [conf] | list"
+    echo "[conf] : the name of your ddns configuration(without '.conf')."
     exit 1
 }
 
@@ -143,25 +143,25 @@ case "$1" in
     config)
         Parameter_judge 2 $#
         Config $2
-        Status
+        Status $2
         ;;
 
     clean)
         Parameter_judge 2 $#
         Clean $2
-        Status
+        Status $2
         ;;
 
     start)
         Parameter_judge 2 $#
         Start $2
-        Status
+        Status $2
         ;;
 
     stop)
         Parameter_judge 2 $#
         Stop $2
-        Status
+        Status $2
         ;;
 
     status)
