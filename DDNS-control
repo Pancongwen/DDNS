@@ -31,7 +31,7 @@ Print_RED() {
 Get_PID() {
     conf="$1"
     PID=`sudo ps aux | grep noip | grep $conf | awk -F ' ' '{print $2}'`
-    if [ "$PID" = " " ];then
+    if [ "$PID" = "" ];then
         PID="Not Running" 
     fi
     echo $PID
