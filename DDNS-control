@@ -116,7 +116,6 @@ Status() {
     do 
         conf=${file:0:(-5)}
         PID=`Get_PID $conf`
-        echo $PID
         Print_RED "Configure: $conf"
         
         Print_RED "Service status"
