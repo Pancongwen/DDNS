@@ -9,7 +9,7 @@ system_service="/etc/systemd/system"
 
 # tools part 
 Usage() {
-    echo "Usage: ./$0 { config | clean | start | stop } [conf] | status"
+    echo "Usage: $0 { config | clean | start | stop } [conf] | status"
     echo "[conf] : the name of you configure(without '.conf')."
     exit 1
 }
@@ -135,21 +135,25 @@ case "$1" in
     config)
         Parameter_judge 2 $#
         Config $2
+        Status
         ;;
 
     clean)
         Parameter_judge 2 $#
         Clean $2
+        Status
         ;;
 
     start)
         Parameter_judge 2 $#
         Start $2
+        Status
         ;;
 
     stop)
         Parameter_judge 2 $#
         Stop $2
+        Status
         ;;
 
     status)
