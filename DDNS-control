@@ -103,21 +103,20 @@ Stop() {
 }
 
 Get_status() {
+    Print_RED "Conf: $1"
+
+    Print_RED "Service status"
+    sudo systemctl status ddns-$1.timer
+    sudo systemctl status ddns-$1.service
+
+    Print_RED "DDNS status" 
     conf_file=`ls /etc/ddns | grep $1.conf`
     if [ "$conf_file" = "" ];then
         echo "No configuration named $1"
         exit 1
     fi 
     conf=${conf_file:0:(-5)}
-
     PID=`Get_PID $conf`
-    Print_RED "Conf: $conf"
-    
-    Print_RED "Service status"
-    sudo systemctl status ddns-$conf.timer
-    sudo systemctl status ddns-$conf.service
-        
-    Print_RED "DDNS status" 
     echo "PID: $PID"
     cd $working_dir
     sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
