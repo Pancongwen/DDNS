@@ -52,9 +52,14 @@ Sign in [NO-IP](https://www.noip.com/) and get a free domain
     $ ./DDNS-control stop [conf]
     ```
     
-### check the status
+### check the status of specific ddns config
     ```
     $ cd DDNS
-    $ ./DDNS-control status 
+    $ ./DDNS-control status [conf]
     ```
     
+### list all ddns configs 
+    ```
+    $ cd DDNS
+    $ ./DDNS-control list
+    ```
