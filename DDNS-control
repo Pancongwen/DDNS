@@ -7,8 +7,9 @@ service_dir="$origin/service"
 working_dir="/etc/ddns"
 system_service="/etc/systemd/system"
 
+# tools part 
 Usage() {
-    echo "Usage: ./$0 { config | clean | start | stop | status } [conf]"
+    echo "Usage: ./$0 { config | clean | start | stop } [conf] | status"
     echo "[conf] : the name of you configure(without '.conf')."
     exit 1
 }
@@ -21,6 +22,14 @@ Parameter_judge() {
     fi
 }
 
+Print_RED() {
+	RED='\033[0;31m'
+	NC='\033[0m'
+	echo -e "${RED}$1${NC}"
+}
+
+
+# main part 
 Config() {
     conf="$1"
     sudo mkdir -p $working_dir 
@@ -48,6 +57,7 @@ Config() {
 
 Clean() {
     conf="$1"
+    Print_RED "clean the configure of $conf"
     # remove service configure
     sudo rm $system_service/ddns-$conf.service 
     sudo rm $system_service/ddns-$conf.timer
@@ -60,11 +70,12 @@ Clean() {
     ls /etc/ddns/ | grep ddns || sudo rm -r /etc/ddns/
 
     # remove auto generate files "NO-IP*"
-    rm $origin/NO-IP* 
+    rm $origin/NO-IP* > /dev/null 2>&1 
 }
 
 Start() {
     conf="$1"
+    Print_RED "start ddns $conf"
     for cmd in start status
     do 
         sudo systemctl $cmd ddns-$conf.service
@@ -75,6 +86,7 @@ Start() {
 
 Stop() {
     conf="$1"
+    Print_RED "stop ddns $conf"
     for cmd in disable stop status
     do 
         sudo systemctl $cmd ddns-$conf.timer
@@ -83,13 +95,28 @@ Stop() {
 }
 
 Status() {
-    conf="$1"
-    echo "Service status"
-    sudo systemctl status ddns-$conf.timer
-    sudo systemctl status ddns-$conf.service
-    echo "DDNS status" 
-    sudo $exec_dir/noip2-x86_64 -S -c $working_dir/$conf.conf
+    conf_list=`ls /etc/ddns | grep .conf`
+    
+    # if there is no ddns configured
+    if [ "$conf_list" = "" ];then 
+        Print_RED "There is no ddns configured"
+        Usage
+    fi 
+    
+    # if have ddns client 
+    for file in $conf_list
+    do 
+        conf=${file:0:(-5)}
+        Print_RED "----$conf----"
+        Print_RED "Service status"
+        sudo systemctl status ddns-$conf.timer
+        sudo systemctl status ddns-$conf.service
+        Print_RED "DDNS status" 
+        cd $working_dir
+        sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
+    done 
 }
+
 
 case "$1" in
     config)
@@ -113,8 +140,8 @@ case "$1" in
         ;;
 
     status)
-        Parameter_judge 2 $#
-        Status $2
+        Parameter_judge 1 $#
+        Status
         ;;
 
     *)
