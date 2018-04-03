@@ -26,7 +26,7 @@ Start() {
 
 Stop() {
     pid=`Get_pid $conf`
-    sudo $dir/noip2-x86_64 -K $pid
+    sudo $dir/noip2-x86_64 -K $pid -c $dir/$conf.conf
 }
 
 
