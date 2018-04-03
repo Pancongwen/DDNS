@@ -102,32 +102,41 @@ Stop() {
     done
 }
 
-Status() {
-    conf_list=`ls /etc/ddns | grep .conf`
-    
-    # if there is no ddns configured
-    if [ "$conf_list" = "" ];then 
-        Print_RED "There is no ddns configured"
-        Usage
+Get_status() {
+    conf_file=`ls /etc/ddns | grep $1.conf`
+    if [ "$conf_file" = "" ];then
+        echo "No configuration named $1"
+        exit 1
     fi 
+    conf=${conf_file:0:(-5)}
+
+    PID=`Get_PID $conf`
+    Print_RED "Conf: $conf"
     
-    # if have ddns client 
+    Print_RED "Service status"
+    sudo systemctl status ddns-$conf.timer
+    sudo systemctl status ddns-$conf.service
+        
+    Print_RED "DDNS status" 
+    echo "PID: $PID"
+    cd $working_dir
+    sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
+}
+
+Status() { 
+    conf="$1"
+    Get_status $conf
+}
+
+List() { 
+    conf_list=`ls /etc/ddns | grep .conf`
     for file in $conf_list
     do 
         conf=${file:0:(-5)}
-        PID=`Get_PID $conf`
-        Print_RED "Configure: $conf"
-        
-        Print_RED "Service status"
-        sudo systemctl status ddns-$conf.timer
-        sudo systemctl status ddns-$conf.service
-        
-        Print_RED "DDNS status" 
-        echo "PID: $PID"
-        cd $working_dir
-        sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
-    done 
+        Get_status $conf
+    done
 }
+
 
 
 case "$1" in
@@ -156,8 +165,13 @@ case "$1" in
         ;;
 
     status)
+        Parameter_judge 2 $#
+        Status $2
+        ;;
+
+    list)
         Parameter_judge 1 $#
-        Status
+        List
         ;;
 
     *)
