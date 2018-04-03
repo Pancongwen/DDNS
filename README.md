@@ -55,6 +55,6 @@ Sign in [NO-IP](https://www.noip.com/) and get a free domain
 ### check the status
     ```
     $ cd DDNS
-    $ ./DDNS-control status [conf]
+    $ ./DDNS-control status 
     ```
     
