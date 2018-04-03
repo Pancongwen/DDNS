@@ -10,7 +10,7 @@ system_service="/etc/systemd/system"
 # tools part 
 Usage() {
     echo "Usage: $0 { config | clean | start | stop } [conf] | status"
-    echo "[conf] : the name of you configure(without '.conf')."
+    echo "[conf] : the name of your ddns configure(without '.conf')."
     exit 1
 }
 
