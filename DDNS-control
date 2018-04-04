@@ -2,6 +2,7 @@
 
 # define directories
 origin=`cd $(dirname $0);pwd `
+state_dir="$origin/.state"
 exec_dir="$origin/exec"
 service_dir="$origin/service"
 working_dir="/etc/ddns"
@@ -30,6 +31,7 @@ Print_RED() {
 
 Get_PID() {
     conf="$1"
+    # get the process ID of conf
     PID=`sudo ps aux | grep noip | grep $conf | awk -F ' ' '{print $2}'`
     if [ "$PID" = "" ];then
         PID="No processes active" 
@@ -37,22 +39,86 @@ Get_PID() {
     echo $PID
 }
 
+Check_state() {
+    conf="$1"
+    correct_state="$2"
+    current_action="$3"
+    
+    # if state file exists ,read its state.
+    # if not, state is init 
+    if [ ! -f "$state_dir/$conf.state" ];then
+        current_state="init"
+    else
+        current_state=`cat $state_dir/$conf.state`
+    fi
+
+    # if state is not correct, warning and exit
+    if [ "$current_state" != "$correct_state" ];then
+        Print_RED "Error:"
+        echo "The $conf state is $current_state."
+        echo "You can not do $current_action on this state."
+        echo "The state must be $correct_state."
+        exit 1
+    fi
+}
+
+Change_state() {
+    conf="$1"
+    state="$2"
+    echo "$state" > $state_dir/$conf.state
+}
+
+Get_status() {
+    conf="$1"
+    state=`cat $state_dir/$conf.state`
+
+    Print_RED "Conf: $conf"
+    Print_RED "State: $state"
+
+    Print_RED "Service status"
+    sudo systemctl status ddns-$conf.timer
+    sudo systemctl status ddns-$conf.service
+
+    Print_RED "DDNS status" 
+    conf_file=`ls /etc/ddns | grep $conf.conf`
+    if [ "$conf_file" = "" ];then
+        echo "No configuration named $conf"
+        exit 1
+    fi 
+    conf=${conf_file:0:(-5)}
+    PID=`Get_PID $conf`
+    echo "PID: $PID"
+    cd $working_dir
+    sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
+}
+
+
 # main part 
 Config() {
     conf="$1"
-    sudo mkdir -p $working_dir 
+    # check state
+    Check_state $conf init config 
 
-    # copy noip exec to /etc/ddns
+    # initiallize state
+    touch $state_dir/$conf.state
+    Change_state $conf init
+
+    # copy noip exec to /etc/ddns and generate noip config 
+    sudo mkdir -p $working_dir 
     sudo cp $exec_dir/noip2-x86_64 $working_dir/
+    sudo $working_dir/noip2-x86_64 -C -c $working_dir/$conf.conf
+
+    # judge if generate correct
+    if [ ! -f "$working_dir/$conf.conf" ];then
+        Print_RED "Error:"
+        echo "Config failed! Please try again!"
+        exit 1 
+    fi
 
     # config service execuable script
     sudo cp $exec_dir/ddns.sh.template $working_dir/ddns-$conf.sh
     sudo sed -i "s/NOIP-CONF/$conf/g" $working_dir/ddns-$conf.sh
     sudo chmod +x $working_dir/ddns-$conf.sh
-
-    # generate noip config 
-    $exec_dir/noip2-x86_64 -C -c $conf.conf
-    sudo mv $conf.conf $working_dir/
 
     # config service
     sudo cp $service_dir/ddns.service.template $system_service/ddns-$conf.service
@@ -61,12 +127,61 @@ Config() {
     # config timer
     sudo cp $service_dir/ddns.timer.template $system_service/ddns-$conf.timer
     sudo sed -i "s/CONF/$conf/g" $system_service/ddns-$conf.timer
+
+    # change state
+    Change_state $conf "configured"
+
+    # show up status
+    Get_status $conf
+}
+
+Start() {
+    conf="$1"
+    # check state
+    Check_state $conf configured start
+    
+    # start ddns service
+    Print_RED "start ddns $conf"
+    
+    sudo systemctl start ddns-$conf.service
+    sudo systemctl start ddns-$conf.timer
+    sudo systemctl enable ddns-$conf.timer
+
+    # change state
+    Change_state $conf "running"
+
+    # show up status
+    Get_status $conf
+}
+
+Stop() {
+    conf="$1"
+    # check state
+    Check_state $conf running stop
+
+    # stop ddns service
+    Print_RED "stop ddns $conf"
+    for cmd in disable stop
+    do 
+        sudo systemctl $cmd ddns-$conf.timer
+        sudo systemctl $cmd ddns-$conf.service
+    done
+
+    # change state log
+    Change_state $conf "configured"
+
+    # show up status
+    Get_status $conf
 }
 
 Clean() {
     conf="$1"
-    Print_RED "clean the configure of $conf"
+    # check state
+    Check_state $conf configured clean 
+
     # remove service configure
+    Print_RED "clean the configure of $conf"
+    
     sudo rm $system_service/ddns-$conf.service 
     sudo rm $system_service/ddns-$conf.timer
 
@@ -79,51 +194,11 @@ Clean() {
 
     # remove auto generate files "NO-IP*"
     rm $origin/NO-IP* > /dev/null 2>&1 
-}
 
-Start() {
-    conf="$1"
-    Print_RED "start ddns $conf"
-    for cmd in start status
-    do 
-        sudo systemctl $cmd ddns-$conf.service
-        sudo systemctl $cmd ddns-$conf.timer
-    done
-    sudo systemctl enable ddns-$conf.timer
-}
+    # change state
+    rm $state_dir/$conf.state
 
-Stop() {
-    conf="$1"
-    Print_RED "stop ddns $conf"
-    for cmd in disable stop status
-    do 
-        sudo systemctl $cmd ddns-$conf.timer
-        sudo systemctl $cmd ddns-$conf.service
-    done
-}
-
-Get_status() {
-    Print_RED "Conf: $1"
-
-    Print_RED "Service status"
-    sudo systemctl status ddns-$1.timer
-    sudo systemctl status ddns-$1.service
-
-    Print_RED "DDNS status" 
-    conf_file=`ls /etc/ddns | grep $1.conf`
-    if [ "$conf_file" = "" ];then
-        echo "No configuration named $1"
-        exit 1
-    fi 
-    conf=${conf_file:0:(-5)}
-    PID=`Get_PID $conf`
-    echo "PID: $PID"
-    cd $working_dir
-    sudo ./noip2-x86_64 -S -c $conf.conf 2>&1 | tail -n 5
-}
-
-Status() { 
-    conf="$1"
+    # show up state
     Get_status $conf
 }
 
@@ -137,35 +212,31 @@ List() {
 }
 
 
-
+# case part
 case "$1" in
     config)
         Parameter_judge 2 $#
         Config $2
-        Status $2
         ;;
 
     clean)
         Parameter_judge 2 $#
         Clean $2
-        Status $2
         ;;
 
     start)
         Parameter_judge 2 $#
         Start $2
-        Status $2
         ;;
 
     stop)
         Parameter_judge 2 $#
         Stop $2
-        Status $2
         ;;
 
     status)
         Parameter_judge 2 $#
-        Status $2
+        Get_status $2
         ;;
 
     list)
