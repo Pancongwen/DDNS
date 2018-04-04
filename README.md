@@ -63,3 +63,9 @@ Sign in [NO-IP](https://www.noip.com/) and get a free domain
     $ cd DDNS
     $ ./DDNS-control list
     ```
+
+### modify the update minute
+    ```
+    $ cd DDNS
+    $ ./DDNS-control update [conf] [min]
+    ```

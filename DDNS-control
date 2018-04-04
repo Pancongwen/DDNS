@@ -10,7 +10,7 @@ system_service="/etc/systemd/system"
 
 # tools part 
 Usage() {
-    echo "Usage: $0 { config | clean | start | stop | status } [conf] | list"
+    echo "Usage: $0 { config | clean | start | stop | status } [conf] | list | update [conf] [min]"
     echo "[conf] : the name of your ddns configuration(without '.conf')."
     exit 1
 }
@@ -211,6 +211,16 @@ List() {
     done
 }
 
+Update() {
+    conf="$1"
+    min="$2"
+
+    # check state
+    Check_state $conf running update
+
+    # update minute
+    sudo $working_dir/noip2-x86_64 -U $min -c $working_dir/$conf.conf
+}
 
 # case part
 case "$1" in
@@ -242,6 +252,13 @@ case "$1" in
     list)
         Parameter_judge 1 $#
         List
+        ;;
+
+    update)
+        Parameter_judge 3 $#
+        Update $2 $3
+        Stop $2
+        Start $2
         ;;
 
     *)
