@@ -1,0 +1,10 @@
+[description]
+This directory store the state of each ddns state
+
+[state]
+     ___________       config          ________________         start         ______________
+    |           |-------------------->|                |-------------------->|              |
+    |   init    |                     |   configured   |                     |   running    | 
+    |___________|<--------------------|________________|<--------------------|______________|
+                        clean                                   stop
+   
