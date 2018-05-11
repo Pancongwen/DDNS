@@ -1,6 +1,6 @@
 # DDNS
 
-针对 Ubuntu 操作系统的动态域名解析（Dynamic DNS）的解决方案
+针对 Ubuntu 操作系统的动态域名解析（Dynamic DNS）方案
  
 
 ### 快速安装
